@@ -3,18 +3,14 @@ import React, {Component} from 'react';
 import {View, Text, Button, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Tracker from "./Tracker";
+import Tracker from "./components/Tracker";
 
 const Tab = createBottomTabNavigator();
 
 class App extends Component {
     render() {
         return (
-            <NavigationContainer>
-                <Tab.Navigator>
-                    <Tab.Screen name="Tracker" component={Tracker} />
-                </Tab.Navigator>
-            </NavigationContainer>
+            <Tracker />
         );
     }
 }

@@ -11,10 +11,12 @@ export default function Header(props) {
 
 const styles = StyleSheet.create({
     text: {
+        backgroundColor: 'green',
+        color: 'white',
+        textAlign: 'center',
         fontSize: 32,
     },
     header: {
-        flex: 1,
         backgroundColor: 'green',
     }
 });
