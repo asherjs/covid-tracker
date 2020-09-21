@@ -1,18 +1,16 @@
 import React, {Component} from 'react';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
-import moment from 'moment';
-import codes from '../codes.json';
-import Header from "./Header";
+import {Button, StyleSheet, Text, View} from 'react-native';
 import CountryPicker from "./CountryPicker";
 import InfoContainer from "./InfoContainer";
+import moment from "moment";
 
 class Tracker extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.handleSelectedCountry = this.handleSelectedCountry.bind(this);
         this.state = {
             error: null,
-            data: null,
+            data: [],
             dataIsLoaded: false,
             countriesIsLoaded: false,
             isSelected: false,
@@ -30,54 +28,9 @@ class Tracker extends Component {
             selectedSlug: slug,
             isSelected: true
         });
-        let from = "2020-04-01T00:00:00Z";
-        let to = "2020-04-20T00:00:00Z";
+        let from = "2020-01-01T00:00:00Z";
+        let to = moment().toDate().toISOString( );
         this.getData(slug, from, to);
-    }
-
-
-    getUrl(firstDate, secondDate) {
-        return `https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/date-range/${firstDate}/${secondDate}`;
-    }
-
-    getIndexedCodes() {
-        let indexedCodes = [];
-        let key = Object.keys(codes);
-        key.forEach(i => {
-            indexedCodes.push({id: i, name: codes[i]});
-        })
-        this.setState({
-            indexedCodes: indexedCodes,
-            //isInitialized: true
-        });
-    }
-
-    getCountryNames() {
-        let result = [];
-        let keys = Object.keys(codes);
-        keys.forEach(i => {
-            result.push({id: i, name: codes[i].name});
-        })
-        //console.log(result);
-        this.setState({flatCodes: result});
-    }
-
-    getCountryCodes() {
-        //let url = this.getUrl("2020-01-01", "2020-01-01");
-        fetch(url)
-            .then(res => res.json())
-            .then((result) => {
-                    this.setState({
-                        codesIsLoaded: true,
-                        countryCodes: result.countries
-                    });
-                },
-                (error) => {
-                    this.setState({
-                        isLoaded: true,
-                        error
-                    });
-                });
     }
 
     getCountries() {
@@ -109,34 +62,9 @@ class Tracker extends Component {
             )
     }
 
-    // getData(slug) {
-    //     console.log("get()");
-    //     let now = this.state.now.toISOString();
-    //     //console.log(now);
-    //     fetch(`https://api.covid19api.com/country/${slug}?from=2020-04-04T00:00:00Z&to=2020-04-10T00:00:00Z}`,
-    //         this.state.requestOptions)
-    //         .then(res => res.json())
-    //         .then((result) => {
-    //                 let data = []
-    //                 let keys = Object.keys(result);
-    //                 keys.forEach(i => {
-    //                     data.push(result);
-    //                 })
-    //             return data;
-    //             },
-    //             (error) => {
-    //                 this.setState({
-    //                     error
-    //                 });
-    //             }
-    //         )
-    // }
-
     getData(slug, from, to) {
         console.log("getData()");
-        //let now = this.state.now.toISOString();
-        //console.log(now);
-        fetch(`https://api.covid19api.com/country/${slug}?from=${from}to=${to}`,
+        fetch(`https://api.covid19api.com/country/${slug}?from=${from}&to=${to}`,
             this.state.requestOptions)
             .then(res => res.json())
             .then((result) => {
@@ -144,7 +72,6 @@ class Tracker extends Component {
                         dataIsLoaded: true,
                         data: result
                     });
-                    console.log(data);
                 },
                 (error) => {
                     this.setState({
@@ -163,18 +90,27 @@ class Tracker extends Component {
 
     render() {
         console.log("Tracker render");
-        const { error, data, isSelected, dataIsLoaded, countriesIsLoaded, countries, selectedSlug, selectedCountry, placeholderText} = this.state;
+        const { error, data, isSelected, dataIsLoaded, countries} = this.state;
         if (error) {
             return (<Text>Error: {error.message}</Text>);
         } else {
             return (
                 <View style={styles.body}>
-                    <Header title={"COVID TRACKER"}/>
                     <CountryPicker
                         countries={countries}
                         onSelect={this.handleSelectedCountry}
                     />
                     <InfoContainer isSelected={isSelected} isLoaded={dataIsLoaded} data={data}/>
+                    {
+                        isSelected &&
+                        <View style={styles.btnDetailsContainer}>
+                            <Button
+                                title="Details"
+                                onPress={() => this.props.navigation.navigate('Details', {data})}
+                                color="#ff5d29"
+                            />
+                        </View>
+                    }
                 </View>
             );
         }
@@ -183,6 +119,7 @@ class Tracker extends Component {
 
 const styles = StyleSheet.create({
     body: {
+        position: 'relative',
         flex: 1,
     },
     total: {
@@ -191,6 +128,17 @@ const styles = StyleSheet.create({
     separator: {
         height: 1,
         backgroundColor: 'black',
+    },
+    detailsButton: {
+        backgroundColor: 'white',
+        position: 'absolute',
+        bottom: 0,
+        right: 0
+    },
+    btnDetailsContainer: {
+        position: 'absolute',
+        bottom: 5,
+        right: 5
     }
 });
 

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View, ScrollView} from "react-native";
+import {StyleSheet, Text, View, ScrollView, processColor, AppRegistry} from "react-native";
 import Placeholder from "./Placeholder";
-import {StackedBarChart} from "react-native-chart-kit";
+import {LineChart} from 'react-native-charts-wrapper';
 
 export default class InfoContainer extends Component{
     constructor(props) {
@@ -13,46 +13,62 @@ export default class InfoContainer extends Component{
 
     render() {
         console.log("InfoContainer render");
-        let data = this.props.data;
         let isLoaded = this.props.isLoaded;
         let isSelected = this.props.isSelected;
         if (!isLoaded && isSelected) {
             return <Placeholder text={"Loading..."}/>
-        } else if (isLoaded && data.length === 0) {
+        } else if (isLoaded && this.props.data.length === 0) {
             return <Placeholder text={"Data not available"} />
         } else if (isLoaded) {
+            let data = this.props.data;
             let lastIndex = data.length - 1;
             let totalConfirmed = data[lastIndex]['Confirmed'];
             let totalDeaths = data[lastIndex]['Deaths'];
             let totalActive = data[lastIndex]['Active'];
             let country = data[lastIndex]['Country'];
-            let graphConst = {
 
-            };
-            let chartData = {
-                labels: [],
-                legend: ['confirmed', 'active', 'deaths'],
-                data: [],
-                barColors: ["#dfe4ea", "#ced6e0", "#a4b0be"]
-            };
-            let i = 0
+            let confirmedData = {
+                label: "Confirmed",
+                config: {
+                    color: processColor('teal'),
+                    circleColor: processColor('teal'),
+                },
+                values: []
+            }
+            let deathsData = {
+                label: "Deaths",
+                config: {
+                    color: processColor('rgb(255,0,0)'),
+                    circleColor: processColor('rgb(255,0,0)'),
+                },
+                values: []
+            }
+            let activeData = {
+                label: "Active",
+                config: {
+                    color: processColor('rgb(255,155,80)'),
+                    circleColor: processColor('rgb(255,155,80)'),
+                },
+                values: []
+            }
+
+            let xAxis = {
+                valueFormatter: [],
+            }
+
             data.forEach(e => {
-                if(i % 10 === 0) {
-                    chartData.labels.push(e.Date.substr(0,9));
-                    i = 0
-                }
-                if(i % 5 === 0) {
-                    chartData.data.push([e.Deaths, e.Active, e.Confirmed]);
-                }
-                i++;
-            });
+                xAxis.valueFormatter.push(e.Date.substr(0,10));
+                confirmedData.values.push({y: e.Confirmed});
+                deathsData.values.push({y: e.Deaths});
+                activeData.values.push({y: e.Active})
+            })
+
             return (
                 <View style={styles.container}>
                     <View style={styles.totalContainer}>
-                        <Text>Total confirmed: {totalConfirmed}</Text>
-                        <Text>Total deaths: {totalDeaths}</Text>
-                        <Text>Total active: {totalActive}</Text>
-                        <Text>Country: {country}</Text>
+                        <Text style={styles.totalText}>Total confirmed: {totalConfirmed}</Text>
+                        <Text style={styles.totalText}>Total deaths: {totalDeaths}</Text>
+                        <Text style={styles.totalText}>Total active: {totalActive}</Text>
                     </View>
 
                     <ScrollView
@@ -60,21 +76,11 @@ export default class InfoContainer extends Component{
                         ref='_scrollView'
                         onContentSizeChange={() => {this.refs._scrollView.scrollToEnd({animated: true});}}
                         horizontal>
-                        <StackedBarChart
-                            data={chartData}
-                            width={2000}
-                            height={700}
-                            showLegend={true}
-                            chartConfig={{
-                                backgroundGradientFrom: "#28e37d",
-                                backgroundGradientFromOpacity: 0,
-                                backgroundGradientTo: "#07f172",
-                                backgroundGradientToOpacity: 0.5,
-                                color: (opacity = 1) => `rgba(20, 20, 20, ${opacity})`,
-                                strokeWidth: 2, // optional, default 3
-                                barPercentage: 1,
-                                useShadowColorFromDataset: false // optional
-                            }}
+                        <LineChart
+                            chartDescription={{text: ''}}
+                            style={{width: 2000}}
+                            xAxis={xAxis}
+                            data={{ dataSets:[confirmedData, deathsData, activeData] }}
                         />
                     </ScrollView>
                 </View>
@@ -96,7 +102,15 @@ const styles = StyleSheet.create({
     },
     totalContainer: {
         position: 'absolute',
+        padding: 3,
+        backgroundColor: 'rgba(40, 40, 40, 0.6)',
+        zIndex: 100,
         top: 0,
-        left: 10
+        left: 10,
+        borderRadius: 5
     },
+    totalText: {
+        color: 'white',
+        zIndex: 100,
+    }
 });
